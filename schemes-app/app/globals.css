@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #f6f1e7;
+  background-image:
+    radial-gradient(circle at 10% 0%, rgba(103, 146, 61, 0.08), transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(217, 136, 31, 0.08), transparent 35%);
+  color: #20231c;
+}
+
+.field-label {
+  @apply block text-sm font-semibold text-paddy-800 mb-1;
+}
+
+.field-input {
+  @apply w-full rounded-md border border-paddy-200 bg-white px-3 py-2 text-ink
+    focus:outline-none focus:ring-2 focus:ring-paddy-500 focus:border-paddy-500;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-md bg-paddy-600 px-4 py-2.5
+    text-sm font-semibold text-white hover:bg-paddy-700 transition-colors
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-paddy-500;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-md border border-paddy-300
+    bg-white px-4 py-2.5 text-sm font-semibold text-paddy-800 hover:bg-paddy-50
+    transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-paddy-500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
