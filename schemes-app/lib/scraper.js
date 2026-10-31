@@ -8,7 +8,9 @@ import { listScanSources, insertPending } from "./db";
 // auto-publishes anything.
 
 const MODEL = "claude-sonnet-5";
-const MAX_PAGE_CHARS = 15000;
+// Raised from 15000: pages with long navigation menus or sidebars were
+// eating the budget before any real content got included.
+const MAX_PAGE_CHARS = 45000;
 
 const VALID_CATEGORIES = new Set([
   "credit", "subsidy", "insurance", "training", "marketing", "land", "welfare", "other",
@@ -45,7 +47,10 @@ async function scanOneSource(source) {
   const html = await res.text();
 
   const $ = cheerio.load(html);
-  $("script, style, nav, header, footer").remove();
+  $(
+    "script, style, nav, header, footer, aside, form, .breadcrumb, .breadcrumbs, " +
+      "#sidebar, .sidebar, .navbar, .nav, .menu, .pagination, .cookie-banner"
+  ).remove();
   const text = $("body").text().replace(/\s+/g, " ").trim().slice(0, MAX_PAGE_CHARS);
   if (!text) return 0;
 
@@ -115,7 +120,7 @@ Respond with ONLY a JSON array of these objects (use [] if nothing relevant is f
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
       messages: [{ role: "user", content: prompt }],
     }),
   });
