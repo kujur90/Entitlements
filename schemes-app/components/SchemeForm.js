@@ -38,12 +38,62 @@ export default function SchemeForm({ scheme }) {
   const [activeLang, setActiveLang] = useState("en");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState("");
+  const [translateNote, setTranslateNote] = useState("");
 
   function setTextField(fieldKey, value) {
     setForm((prev) => ({
       ...prev,
       [fieldKey]: { ...prev[fieldKey], [activeLang]: value },
     }));
+  }
+
+  async function handleTranslate() {
+    if (!form.title.en.trim()) {
+      setTranslateError("Fill in the English title first.");
+      return;
+    }
+    setTranslating(true);
+    setTranslateError("");
+    setTranslateNote("");
+    try {
+      const englishFields = Object.fromEntries(TEXT_FIELDS.map((f) => [f.key, form[f.key].en]));
+      const res = await fetch("/api/admin/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(englishFields),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTranslateError(data.error || "Could not translate.");
+        return;
+      }
+      const translations = data.translations || {};
+      const langCodes = Object.keys(translations);
+      if (langCodes.length === 0) {
+        setTranslateError("Didn't get anything back. Try again.");
+        return;
+      }
+      setForm((prev) => {
+        const next = { ...prev };
+        for (const f of TEXT_FIELDS) {
+          const updatedField = { ...prev[f.key] };
+          for (const code of langCodes) {
+            if (translations[code] && typeof translations[code][f.key] === "string") {
+              updatedField[code] = translations[code][f.key];
+            }
+          }
+          next[f.key] = updatedField;
+        }
+        return next;
+      });
+      setTranslateNote(`Filled in ${langCodes.length} language${langCodes.length === 1 ? "" : "s"} \u2014 check each tab before saving.`);
+    } catch {
+      setTranslateError("Could not reach the server. Try again.");
+    } finally {
+      setTranslating(false);
+    }
   }
 
   function toggleState(code) {
@@ -170,22 +220,34 @@ export default function SchemeForm({ scheme }) {
         <p className="mb-4 text-sm text-ink/70">
           {"Fill in English first. Other languages are optional \u2014 the site falls back to English if a translation is missing."}
         </p>
-        <div className="mb-4 flex gap-2">
-          {LANGUAGES.map((lang) => (
-            <button
-              type="button"
-              key={lang.code}
-              onClick={() => setActiveLang(lang.code)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-                activeLang === lang.code
-                  ? "bg-paddy-600 text-white"
-                  : "bg-paddy-50 text-paddy-800 hover:bg-paddy-100"
-              }`}
-            >
-              {lang.native}
-            </button>
-          ))}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map((lang) => (
+              <button
+                type="button"
+                key={lang.code}
+                onClick={() => setActiveLang(lang.code)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+                  activeLang === lang.code
+                    ? "bg-paddy-600 text-white"
+                    : "bg-paddy-50 text-paddy-800 hover:bg-paddy-100"
+                }`}
+              >
+                {lang.native}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={handleTranslate}
+            disabled={translating}
+            className="btn-secondary whitespace-nowrap text-sm"
+          >
+            {translating ? "Translating\u2026" : "Translate with AI"}
+          </button>
         </div>
+        {translateError && <p className="mb-4 text-sm text-terracotta-600">{translateError}</p>}
+        {translateNote && <p className="mb-4 text-sm text-ink/70">{translateNote}</p>}
 
         <div className="space-y-4">
           {TEXT_FIELDS.map((f) => (
