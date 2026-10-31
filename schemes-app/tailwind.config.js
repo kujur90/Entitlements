@@ -61,7 +61,7 @@ module.exports = {
       },
       fontFamily: {
         display: ["'Fraunces'", "serif"],
-        body: ["'Hanken Grotesk'", "'Noto Sans Bengali'", "'Noto Sans Meetei Mayek'", "sans-serif"],
+        body: ["'Hanken Grotesk'", "'Noto Sans Bengali'", "'Noto Sans Devanagari'", "'Noto Sans Meetei Mayek'", "sans-serif"],
       },
       maxWidth: {
         measure: "68ch",

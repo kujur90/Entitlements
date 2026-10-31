@@ -1,10 +1,13 @@
 import en from "./locales/en.json";
 import as from "./locales/as.json";
 import nag from "./locales/nag.json";
+import hi from "./locales/hi.json";
+import bn from "./locales/bn.json";
+import kha from "./locales/kha.json";
 
 // To add a language: drop a new locales/<code>.json (copy en.json as a
 // starting point), then add one line here and one entry in LANGUAGES below.
-const DICTIONARIES = { en, as, nag };
+const DICTIONARIES = { en, as, nag, hi, bn, kha };
 
 export const DEFAULT_LOCALE = "en";
 
@@ -12,6 +15,9 @@ export const LANGUAGES = [
   { code: "en", native: "English" },
   { code: "as", native: "অসমীয়া" },
   { code: "nag", native: "Nagamese" },
+  { code: "hi", native: "हिन्दी" },
+  { code: "bn", native: "বাংলা" },
+  { code: "kha", native: "Khasi" },
 ];
 
 export function getDictionary(locale) {

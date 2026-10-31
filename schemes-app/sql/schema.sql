@@ -24,12 +24,20 @@ CREATE INDEX IF NOT EXISTS schemes_states_idx ON schemes USING GIN (states);
 CREATE INDEX IF NOT EXISTS schemes_category_idx ON schemes (category);
 CREATE INDEX IF NOT EXISTS schemes_created_at_idx ON schemes (created_at);
 
+-- Each row is one scheme Claude found while reading a configured source page.
+-- Nothing here is published until an admin reviews it and clicks "Publish this".
 CREATE TABLE IF NOT EXISTS pending_schemes (
   id SERIAL PRIMARY KEY,
   source_name TEXT,
   source_url TEXT,
-  excerpt TEXT NOT NULL,
-  matched_keyword TEXT,
+  suggested_title TEXT,
+  suggested_category TEXT,
+  suggested_states TEXT[] NOT NULL DEFAULT '{}',
+  suggested_summary TEXT,
+  suggested_description TEXT,
+  suggested_eligibility TEXT,
+  suggested_benefits TEXT,
+  suggested_how_to_apply TEXT,
   status TEXT NOT NULL DEFAULT 'pending_review',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

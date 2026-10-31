@@ -116,19 +116,39 @@ export async function getPendingById(id) {
   return rows[0] || null;
 }
 
-export async function insertPending({ source_name, source_url, excerpt, matched_keyword }) {
+export async function insertPending(data) {
   const sql = getSql();
-  // Avoid flagging the exact same excerpt from the same source twice.
-  const existing = await sql`
+  const {
+    source_name, source_url, suggested_title, suggested_category, suggested_states,
+    suggested_summary, suggested_description, suggested_eligibility,
+    suggested_benefits, suggested_how_to_apply,
+  } = data;
+
+  const normalizedTitle = (suggested_title || "").trim().toLowerCase();
+  if (!normalizedTitle) return null;
+
+  // Don't re-flag something already published, or already waiting for review.
+  const existingPublished = await sql`
+    SELECT id FROM schemes WHERE lower(title->>'en') = ${normalizedTitle} LIMIT 1
+  `;
+  if (existingPublished[0]) return null;
+
+  const existingPending = await sql`
     SELECT id FROM pending_schemes
-    WHERE source_url = ${source_url} AND excerpt = ${excerpt}
+    WHERE lower(suggested_title) = ${normalizedTitle} AND status = 'pending_review'
     LIMIT 1
   `;
-  if (existing[0]) return null;
+  if (existingPending[0]) return null;
 
   const rows = await sql`
-    INSERT INTO pending_schemes (source_name, source_url, excerpt, matched_keyword, status)
-    VALUES (${source_name}, ${source_url}, ${excerpt}, ${matched_keyword}, 'pending_review')
+    INSERT INTO pending_schemes
+      (source_name, source_url, suggested_title, suggested_category, suggested_states,
+       suggested_summary, suggested_description, suggested_eligibility,
+       suggested_benefits, suggested_how_to_apply, status)
+    VALUES
+      (${source_name}, ${source_url}, ${suggested_title}, ${suggested_category}, ${suggested_states},
+       ${suggested_summary}, ${suggested_description}, ${suggested_eligibility},
+       ${suggested_benefits}, ${suggested_how_to_apply}, 'pending_review')
     RETURNING *
   `;
   return rows[0];
