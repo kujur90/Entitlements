@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listSchemes } from "@/lib/db";
 import AdminNav from "@/components/AdminNav";
 import AdminSchemeList from "@/components/AdminSchemeList";
+import TranslateAllButton from "@/components/TranslateAllButton";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function AdminDashboardPage() {
           Add a scheme
         </Link>
       </div>
+      <TranslateAllButton />
       <AdminSchemeList initialSchemes={schemes} />
     </div>
   );

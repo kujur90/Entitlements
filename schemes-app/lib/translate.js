@@ -1,7 +1,11 @@
 import { LANGUAGES, DEFAULT_LOCALE } from "./i18n";
+import { listSchemes, updateScheme } from "./db";
 
 const MODEL = "claude-sonnet-5";
 const FIELD_KEYS = ["title", "summary", "description", "eligibility", "benefits", "how_to_apply"];
+// Safety cap per click, so one run can't run indefinitely; click again to
+// continue with whatever's left.
+const MAX_SCHEMES_PER_RUN = 15;
 
 export async function translateScheme(englishFields) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -55,4 +59,46 @@ Respond with ONLY a JSON object. Each top-level key is one of these language cod
   } catch {
     return {};
   }
+}
+
+function needsTranslation(scheme) {
+  const targets = LANGUAGES.filter((l) => l.code !== DEFAULT_LOCALE);
+  return targets.some((l) => !scheme.title?.[l.code] || !scheme.title[l.code].trim());
+}
+
+// Finds every published scheme missing at least one language's title, and
+// translates each one from its English content. Processes up to
+// MAX_SCHEMES_PER_RUN per call; if more remain, the admin can click again.
+export async function translateAllSchemes() {
+  const schemes = await listSchemes({});
+  const todo = schemes.filter(needsTranslation);
+  const batch = todo.slice(0, MAX_SCHEMES_PER_RUN);
+
+  let translated = 0;
+  for (const scheme of batch) {
+    const englishFields = Object.fromEntries(FIELD_KEYS.map((k) => [k, scheme[k]?.en || ""]));
+    const translations = await translateScheme(englishFields);
+    const langCodes = Object.keys(translations);
+    if (langCodes.length === 0) continue;
+
+    const updated = {
+      states: scheme.states,
+      category: scheme.category,
+      deadline: scheme.deadline,
+      source_name: scheme.source_name,
+      source_url: scheme.source_url,
+    };
+    for (const key of FIELD_KEYS) {
+      const merged = { ...(scheme[key] || {}) };
+      for (const code of langCodes) {
+        const value = translations[code]?.[key];
+        if (typeof value === "string" && value) merged[code] = value;
+      }
+      updated[key] = merged;
+    }
+    await updateScheme(scheme.id, updated);
+    translated += 1;
+  }
+
+  return { translated, remaining: todo.length - batch.length, totalNeeded: todo.length };
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { t } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-export default function Header({ locale }) {
+export default function Header({ locale, hideLanguageSwitcher }) {
   return (
     <header className="border-b border-paddy-200/70">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4">
@@ -18,7 +18,7 @@ export default function Header({ locale }) {
           >
             {t(locale, "nav.schemes")}
           </Link>
-          <LanguageSwitcher currentLocale={locale} />
+          {!hideLanguageSwitcher && <LanguageSwitcher currentLocale={locale} />}
         </nav>
       </div>
     </header>

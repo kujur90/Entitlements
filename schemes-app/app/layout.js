@@ -1,4 +1,5 @@
 import "./globals.css";
+import { headers } from "next/headers";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getLocale } from "@/lib/locale";
@@ -10,7 +11,11 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const locale = getLocale();
+  // The admin panel always stays in English for the admin, regardless of
+  // the public language cookie; middleware.js sets this header for every
+  // /admin page so this isn't affected by whatever a visitor last chose.
+  const forcedToEnglish = headers().get("x-force-locale") === "en";
+  const locale = forcedToEnglish ? "en" : getLocale();
 
   return (
     <html lang={locale}>
@@ -23,7 +28,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-body min-h-screen flex flex-col">
-        <Header locale={locale} />
+        <Header locale={locale} hideLanguageSwitcher={forcedToEnglish} />
         <main className="flex-1">{children}</main>
         <Footer locale={locale} />
       </body>
