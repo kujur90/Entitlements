@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
       <body className="font-body min-h-screen flex flex-col">
         <Header locale={locale} hideLanguageSwitcher={forcedToEnglish} />
         <main className="flex-1">{children}</main>
-        <Footer locale={locale} />
+        <Footer />
       </body>
     </html>
   );
