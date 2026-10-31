@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { scanAllSources } from "@/lib/scraper";
 
-export const maxDuration = 60;
+export const maxDuration = 290; // Hobby plan allows up to 300s
 
 export async function GET(request) {
   const auth = request.headers.get("authorization");

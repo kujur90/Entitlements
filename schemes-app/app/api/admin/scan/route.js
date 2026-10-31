@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 290; // Hobby plan allows up to 300s
 
 import { scanAllSources } from "@/lib/scraper";
 
